@@ -1,26 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADC Fee Portal</title>
-    <style>
-        :root { --primary: #2c3e50; --accent: #d35400; --bg: #f8f9fa; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
-        h2 { color: var(--primary); text-align: center; border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
-        label { display: block; margin: 15px 0 5px; font-weight: 600; color: #555; }
-        select { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 10px; box-sizing: border-box; }
-        select:disabled { background: #eee; cursor: not-allowed; }
-        
-        .fee-info { background: #fff3e0; padding: 20px; border-radius: 8px; margin-top: 20px; display: none; border-left: 5px solid var(--accent); text-align: center; }
-        .amount-text { font-size: 32px; font-weight: 800; color: var(--primary); margin: 5px 0; }
-        .date-info { color: #d35400; font-size: 14px; font-weight: 600; margin-bottom: 15px; }
-        
-        /* Ensures the QR code is centered and sized correctly */
-        .qr-image { width: 220px; height: 220px; margin-top: 15px; border: 5px solid white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        #loading { font-size: 12px; color: #888; text-align: center; display: none; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADC Fee Portal</title>
+<style>
+:root { --primary: #2c3e50; --accent: #d35400; --bg: #f8f9fa; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
+.card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
+h2 { color: var(--primary); text-align: center; border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
+label { display: block; margin: 15px 0 5px; font-weight: 600; color: #555; }
+select, input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 10px; box-sizing: border-box; }
+.fee-info { background: #fff3e0; padding: 20px; border-radius: 8px; margin-top: 20px; display: none; border-left: 5px solid var(--accent); text-align: center; }
+.amount-text { font-size: 32px; font-weight: 800; color: var(--primary); margin: 5px 0; }
+.info-box { background: #eee; padding: 10px; border-radius: 6px; font-weight: bold; color: var(--primary); margin-bottom: 15px; border: 1px dashed #999; font-size: 14px; }
+.submit-btn { background: #27ae60; color: white; border: none; padding: 15px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+.download-btn { background: #3498db; color: white; border: none; padding: 10px; width: 100%; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; display: inline-block; text-decoration: none; }
+.qr-image { width: 220px; height: 220px; margin-top: 15px; border: 5px solid white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+#loading { font-size: 12px; color: #888; text-align: center; display: none; }
+.late-fee-text { color: #c0392b; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
+.helper-text {
+    background-color: #f1f3f4; /* Matches the soft grey in your photo */
+    padding: 15px 20px;
+    border-radius: 10px;
+    font-size: 0.88rem; /* Makes the text "small" like the photo */
+    line-height: 1.5;
+    color: #444;
+    max-width: 450px; /* Keeps it from being too wide */
+    margin: 10px 0;
+    text-align: left;
+}
+
+.helper-text b {
+    color: #333;
+}
+</style>
 </head>
 <body>
 
@@ -30,141 +44,192 @@
     <label>Select Batch</label>
     <select id="batchSelect" onchange="fetchStudents()">
         <option value="">-- Choose Batch --</option>
-        <option value="1153102505">Adithi 5PM</option>
-        <option value="2130741082">Adithi 6PM</option>
-        <option value="1750523098">Smruthi - 5PM</option>
-        <option value="2003881472">Meera - 6PM</option>
-        <option value="1136159670">Medha - 7PM</option>
-        <option value="1538392135">Medha - 5PM</option>
     </select>
 
     <label>Student Name</label>
-    <select id="studentSelect" disabled onchange="resetDisplay()">
+    <select id="studentSelect" disabled onchange="showFeeDetails()">
         <option value="">-- Select Batch First --</option>
     </select>
     <div id="loading">Syncing with Google Sheets...</div>
 
-    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
-
-    <label>Payment Plan</label>
-    <select id="frequency" onchange="updatePeriodOptions()">
-        <option value="monthly">Monthly (₹3000)</option>
-        <option value="quarterly">Quarterly (₹9000)</option>
-    </select>
-
-    <label id="periodLabel">Select Month</label>
-    <select id="periodSelect" onchange="calculateFinalFee()">
-        <option value="">-- Select --</option>
-    </select>
-
     <div id="feeDisplayArea" class="fee-info">
-        <div id="currentDateText" class="date-info"></div>
+        <div style="font-size: 11px; color: #666; text-transform: uppercase;">Registration ID</div>
+        <div id="displayRegId" class="info-box">---</div>
+
+        <div style="font-size: 11px; color: #666; text-transform: uppercase;">Payment Plan</div>
+        <div id="displayPlan" class="info-box">---</div>
+
+        <label>Select Payment Period</label>
+        <select id="periodSelect"></select>
+
+        <div id="lateFeeMsg" class="late-fee-text"></div>
         <div style="font-size: 14px; color: #666;">Total Amount Due</div>
         <div class="amount-text" id="displayAmount">₹0</div>
         
-        <img id="qrImg" src="" class="qr-image" alt="Payment QR Code" referrerpolicy="no-referrer">
+        <img id="qrImg" src="" class="qr-image" alt="Payment QR Code">
+        <a id="downloadQR" class="download-btn" href="#" download="ADC_Payment_QR.png">Save QR to Gallery</a>
         
-        <p style="font-size: 11px; color: #777; margin-top: 15px;">
-            Scan QR with GPay, PhonePe, or Paytm.<br>
-            <strong>Include Student Name in the payment note.</strong>
-        </p>
+        <div class="helper-text">
+    <b style="font-size: 1.1rem; display: block; margin-bottom: 8px;">How to Pay:</b>
+    1. Tap the Blue button above to save the QR.<br>
+    2. Open <b>GPay</b> or <b>PhonePe</b>.<br>
+    3. Choose <b>"Scan Any QR"</b>.<br>
+    4. Tap the <b>Gallery/Image icon</b> and select the QR you just saved.
+</div>
+
+        
+        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
+        <label style="text-align: left;">Enter 12-Digit Transaction ID</label>
+        <input type="text" id="txnId" placeholder="123456789012" maxlength="12">
+        <button id="submitBtn" class="submit-btn" onclick="submitTransaction()">Submit Payment Proof</button>
     </div>
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz1MrHy_-g9ZG6nuNzpjOSvEQWguKLuGgYQUrcnyQDPj7IyzxOKt8qDriBRUzFHqTAI/exec";
+const FETCH_URL = "https://script.google.com/macros/s/AKfycby3y-aKhj2DCNI0Qeg46K2E-74OvXPz7FiFi1HMpz0fTUoW6Qn2BTvQ3To6Y4ItA3Dq/exec"; // Replace with your Google Apps Script fetch URL
+const SUBMIT_URL = "https://script.google.com/macros/s/AKfycbwzNqFFjMA5nQphuqN5yN9thV4CAh6WNsP61_p19mptGrGfUqWUY6pxGFhuIvhfw4_z/exec"; // Replace with your Google Apps Script submit URL
+
+const GID_MAP = {
+        "Apoorva 7am": "266127589", "Apoorva 8am": "1889447347", "Bhavana 6pm": "1275887889", "Bhavana 8pm": "1776876141",
+        "Dimple ": "1069956842", "Harshitha": "601897457", "Maanvi 7am": "1833547918", "Maanvi 8am": "650467563",
+        "NR 8pm": "337144518", "Pooja 6pm": "570547654", "Pooja 7pm": "2057818476", "Rohini 5pm": "121118195",
+        "Rohini 6pm": "1926838675", "Rohini Mon-Thu 7pm": "1683652627", "Rohini Wed-Fri 7pm": "1256431252", "Sanchita 5pm": "1492684900", "Spurthi 7pm": "225518473", "Spurthi 8pm": "2010826138", "NR": "1654885843"
+    };
+let studentList = [];
+
+const bSelect = document.getElementById('batchSelect');
+Object.keys(GID_MAP).forEach(name => {
+    let opt = document.createElement('option');
+    opt.value = GID_MAP[name];
+    opt.textContent = name;
+    bSelect.appendChild(opt);
+});
+
+async function fetchStudents() {
+    const gid = document.getElementById('batchSelect').value;
+    const sDropdown = document.getElementById('studentSelect');
+    const loader = document.getElementById('loading');
+    if (!gid) return;
+
+    sDropdown.disabled = true;
+    sDropdown.innerHTML = '<option value="">Loading...</option>';
+    loader.style.display = 'block';
+
+    try {
+        const response = await fetch(`${FETCH_URL}?gid=${gid}`);
+        const data = await response.json();
+        
+        const headers = data[0].map(h => h.toString().toLowerCase());
+        const nameIdx = headers.findIndex(h => h.includes('name'));
+        const regIdx = headers.findIndex(h => h.includes('reg'));
+        const methodIdx = headers.findIndex(h => h.includes('method'));
+        const amountIdx = headers.findIndex(h => h.includes('amount')); // NEW: column with base amount
+
+        studentList = data.slice(1).map(row => ({
+            name: row[nameIdx] || "Unknown",
+            reg: row[regIdx] || "N/A",
+            method: row[methodIdx] || "Monthly",
+            baseAmount: row[amountIdx] ? Number(row[amountIdx]) : 2000 // dynamic base amount
+        }));
+
+        sDropdown.innerHTML = '<option value="">-- Select Student --</option>';
+        studentList.forEach((s, i) => {
+            let opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = s.name;
+            sDropdown.appendChild(opt);
+        });
+        sDropdown.disabled = false;
+    } catch (e) {
+        sDropdown.innerHTML = '<option value="">Error syncing data</option>';
+        console.error(e);
+    } finally {
+        loader.style.display = 'none';
+    }
+}
+
+function showFeeDetails() {
+    const idx = document.getElementById('studentSelect').value;
+    if (idx === "") return;
+
+    const student = studentList[idx];
+    const method = student.method.toLowerCase();
     
-    // Using the Thumbnail API which is much more reliable for Google Drive images
-    const QR_IMAGES = {
-        100: "https://drive.google.com/thumbnail?id=1WKOlM5hDv6y5PRQMAzGQLcoD2ccPngXG&sz=w500", 
-        150: "https://drive.google.com/thumbnail?id=1AyTrziSH5qnDVBXK6GGpCByS_AW3qRpZ&sz=w500"
+    document.getElementById('displayRegId').innerText = student.reg;
+    document.getElementById('displayPlan').innerText = student.method;
+
+    const pSelect = document.getElementById('periodSelect');
+    pSelect.innerHTML = '';
+    if (method.includes('quat') || method.includes('quarterly')) {
+        ['Q1 (Jan-Mar)', 'Q2 (Apr-Jun)', 'Q3 (Jul-Sep)', 'Q4 (Oct-Dec)'].forEach(q => {
+            let opt = document.createElement('option');
+            opt.value = q; opt.textContent = q;
+            pSelect.appendChild(opt);
+        });
+    } else {
+        ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].forEach(m => {
+            let opt = document.createElement('option');
+            opt.value = m; opt.textContent = m;
+            pSelect.appendChild(opt);
+        });
+    }
+
+    const day = new Date().getDate();
+    let baseFee = student.baseAmount; // fetch from sheet
+    let lateFee = 0;
+    let msg = "";
+
+    if (day > 20) {
+        lateFee = 750;
+        msg = "Late Fee Applied: ₹750 (Post 20th)";
+    } else if (day > 15) {
+        lateFee = 500;
+        msg = "Late Fee Applied: ₹500 (Post 15th)";
+    }
+
+    document.getElementById('lateFeeMsg').innerText = msg;
+    document.getElementById('displayAmount').innerText = `₹${baseFee + lateFee}`;
+    
+    const qrUrl = "https://drive.google.com/thumbnail?id=1WKOlM5hDv6y5PRQMAzGQLcoD2ccPngXG&sz=w500";
+    document.getElementById('qrImg').src = qrUrl;
+    document.getElementById('downloadQR').href = qrUrl;
+    
+    document.getElementById('feeDisplayArea').style.display = 'block';
+}
+
+async function submitTransaction() {
+    const tid = document.getElementById('txnId').value.trim();
+    const btn = document.getElementById('submitBtn');
+    if(!/^\d{12}$/.test(tid)) { alert("Enter valid 12-digit TXN ID"); return; }
+
+    btn.disabled = true;
+    btn.innerText = "Submitting...";
+
+    const payload = {
+        batchName: document.getElementById('batchSelect').selectedOptions[0].text,
+        studentName: document.getElementById('studentSelect').selectedOptions[0].text,
+        regId: document.getElementById('displayRegId').innerText,
+        plan: document.getElementById('displayPlan').innerText,
+        period: document.getElementById('periodSelect').value,
+        amount: document.getElementById('displayAmount').innerText,
+        txnId: tid
     };
 
-    const months = ["June", "July", "August", "September", "October", "November", "December", "January", "February", "March"];
-    const quarters = [
-        { label: "June/July/Aug", code: "Q1" },
-        { label: "Sept/Oct/Nov", code: "Q2" },
-        { label: "Dec/Jan/Feb", code: "Q3" },
-        { label: "March/Apr/May", code: "Q4" }
-    ];
-
-    function updatePeriodOptions() {
-        const freq = document.getElementById('frequency').value;
-        const periodSelect = document.getElementById('periodSelect');
-        const periodLabel = document.getElementById('periodLabel');
-        periodSelect.innerHTML = '<option value="">-- Select --</option>';
-        if (freq === 'monthly') {
-            periodLabel.innerText = "Select Month";
-            months.forEach(m => periodSelect.add(new Option(m, m)));
-        } else {
-            periodLabel.innerText = "Select Quarter";
-            quarters.forEach(q => periodSelect.add(new Option(q.label, q.code)));
-        }
-        resetDisplay();
+    try {
+        await fetch(SUBMIT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify(payload)
+        });
+        alert("Payment details submitted successfully!");
+        location.reload();
+    } catch (e) {
+        alert("Submission failed.");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Submit Payment Proof";
     }
-
-    async function fetchStudents() {
-        const gid = document.getElementById('batchSelect').value;
-        const studentDropdown = document.getElementById('studentSelect');
-        const loader = document.getElementById('loading');
-        if (!gid) return;
-
-        studentDropdown.disabled = true;
-        studentDropdown.innerHTML = '<option value="">Loading...</option>';
-        loader.style.display = 'block';
-        resetDisplay();
-
-        try {
-            const response = await fetch(`${SCRIPT_URL}?gid=${gid}&v=${new Date().getTime()}`);
-            const data = await response.json();
-            studentDropdown.innerHTML = '<option value="">-- Select Student --</option>';
-            data.forEach(student => {
-                if (student.Name) {
-                    let opt = document.createElement('option');
-                    opt.value = student["Reg #"] || student.Name;
-                    opt.textContent = student.Name;
-                    studentDropdown.appendChild(opt);
-                }
-            });
-            studentDropdown.disabled = false;
-        } catch (e) {
-            studentDropdown.innerHTML = '<option value="">Error loading students</option>';
-        } finally {
-            loader.style.display = 'none';
-        }
-    }
-
-    function calculateFinalFee() {
-        const periodCode = document.getElementById('periodSelect').value;
-        const studentSelect = document.getElementById('studentSelect');
-        const regId = studentSelect.value;
-
-        if (!periodCode || !regId) {
-            document.getElementById('feeDisplayArea').style.display = 'none';
-            return;
-        }
-
-        const now = new Date();
-        const day = now.getDate();
-        const monthName = now.toLocaleString('default', { month: 'long' });
-        
-        // Fee Logic based on Date: 1-15 = 100, 16-30 = 150
-        let amount = (day <= 15) ? 100 : 150;
-
-        document.getElementById('currentDateText').innerText = `Date: ${monthName} ${day}`;
-        document.getElementById('displayAmount').innerText = `₹${amount}`;
-        
-        // This line updates the QR code image
-        document.getElementById('qrImg').src = QR_IMAGES[amount];
-        
-        document.getElementById('feeDisplayArea').style.display = 'block';
-    }
-
-    function resetDisplay() {
-        document.getElementById('feeDisplayArea').style.display = 'none';
-    }
-
-    window.onload = updatePeriodOptions;
+}
 </script>
 
 </body>
